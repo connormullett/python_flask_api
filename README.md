@@ -1,5 +1,4 @@
-# FLASK API's
-
+# Basic Flask API
 
 ## Prerequisites
 - Python3
