@@ -21,6 +21,7 @@ class User(db.Model):
         self.email = email
 """
 
+
 class Language(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(10), unique=True)
@@ -37,6 +38,7 @@ class Language(db.Model):
                 }
 
 
+# handles creating and getting all
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
@@ -68,13 +70,16 @@ def index():
         return jsonify({'status': 'method not supported'})
 
 
+# handles all requests that require an object id
 @app.route('/<id>', methods=['GET', 'PUT', 'DELETE'])
 def action_by_id(id):
+
     if request.method == 'GET':
         language = Language.query.filter_by(id=id).first()
         if not language:
             return jsonify({'status': 'bad request'})
         return jsonify(language.to_json())
+
     elif request.method == 'PUT':
         # grabs language by id
         language = Language.query.get(id)
@@ -99,10 +104,13 @@ def action_by_id(id):
         db.session.delete(language)
         db.session.commit()
         return jsonify({'status': '204'})
+
     else:
+        # flask handles this automatically, but why not have it for logics sake
         return jsonify({'status': 'Method not supported'})
 
 
+# runs the app if launched from cmd line, should not be used in production
 if __name__ == '__main__':
     app.run(debug=True, port=8080)
 
