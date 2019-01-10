@@ -3,11 +3,13 @@ from flask import Flask, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
 
 # python3 interpreter > import db from file > db.create_all()
+# to configure db and initiate models (below)
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:password@localhost/flask_api'
 db = SQLAlchemy(app)
 
 
+# models for ORM
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True)
@@ -40,12 +42,15 @@ def index():
         language = request.get_json()
 
         for key, value in language.items():
+            # returns psuedo 403 if a field is blank
             if not value:
                 return jsonify({'error': 'bad request'})
 
+        # sets local variables from request
         name = language['name']
         framework = language['framework']
 
+        # creates a new model object, stores it in db, and persists it
         new_language = Language(name=name, framework=framework)
         db.session.add(new_language)
         db.session.commit()
@@ -56,6 +61,7 @@ def index():
         languages = Language.query.all()
         return jsonify({'languages': [language.to_json() for language in languages]})
 
+    # if method is not GET/POST
     else:
         return jsonify({'status': 'method not supported'})
 
