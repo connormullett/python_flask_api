@@ -66,9 +66,12 @@ def index():
         return jsonify({'status': 'method not supported'})
 
 
-@app.route('/<id>')
+@app.route('/<id>', methods=['GET'])
 def detail(id):
-    pass
+    language = Language.query.filter_by(id=id).first()
+    if not language:
+        return jsonify({'status': 'bad request'})
+    return jsonify(language.to_json())
 
 
 @app.route('/<id>', methods=['PUT'])
