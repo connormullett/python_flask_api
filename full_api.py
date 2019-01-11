@@ -2,12 +2,16 @@
 from flask import Flask, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_httpauth import HTTPBasicAuth
+
 import models
 
 # python3 interpreter > import db from file > db.create_all()
 # to configure db and initiate models (below)
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:password@localhost/flask_api'
+app.config['SECRET_KEY'] = 'ThisIsASecretKey'
+
+db = SQLAlchemy(app)
 
 # set auth instance
 auth = HTTPBasicAuth()
@@ -165,9 +169,22 @@ def user_specific(id):
         return jsonify({'status': '204'})
 
 
-@app.route('/login', methods=['POST'])
-def login():
-    pass
+"""params
+username: string
+password: string
+"""
+@app.route('/token', methods=['POST'])
+def get_auth_token():
+    username = request.get_json()['username']
+    password = request.get_json()['password']
+
+    user = models.User.query.filter_by(username=username).first()
+
+    if user.verify_password(password) is True:
+        token = user.generate_auth_token()
+        return jsonify({'token': token.decode('ascii')})
+
+    return jsonify({'status': '403'})
 
 
 @app.route('/user', methods=['GET'])
