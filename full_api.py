@@ -1,35 +1,45 @@
 
 from flask import Flask, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
-from flask_httpauth import HTTPBasicAuth
 
 import models
 
 # python3 interpreter > import db from file > db.create_all()
-# to configure db and initiate models (below)
+# to configure db and initiate models (located in models.py)
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:password@localhost/flask_api'
 app.config['SECRET_KEY'] = 'ThisIsASecretKey'
 
 db = SQLAlchemy(app)
 
-# set auth instance
-auth = HTTPBasicAuth()
-
 
 # handles creating and getting all
 # login required
+"""params
+token: string
+owner_id: int
+name: string
+framework: string
+"""
 @app.route('/', methods=['GET', 'POST'])
-@auth.login_required
 def index():
     if request.method == 'POST':
+
+        token = request.get_json()['token']
+
+        if not token:
+            return {'status': '401 unauthorized'}
+
+        # new
+        # TODO: Need to grab user object from owner_id
+        owner_id = request.get_json()['owner_id']
+        user = models.User.query.get(owner_id)
+
+        if not user.verify_auth_token(token):
+            return {'status': '401 invalid token'}
+        # end new
+
         language = request.get_json()
-
-        for key, value in language.items():
-
-            # returns psuedo 403 if a field is blank
-            if not value:
-                return jsonify({'error': 'bad request'})
 
         # sets local variables from request
         name = language['name']

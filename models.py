@@ -28,6 +28,7 @@ class User(db.Model):
     def hash_password(self, password):
         self.password_hash = pwd_context.encrypt(password)
 
+    # only used in user registration
     def verify_password(self, password):
         return pwd_context.verify(password, self.password_hash)
 
@@ -41,11 +42,10 @@ class User(db.Model):
         try:
             data = s.loads(token)
         except SignatureExpired:
-            return None
+            return False
         except BadSignature:
-            return None
-        user = User.query.get(data['id'])
-        return user
+            return False
+        return True
 
 class Language(db.Model):
     id = db.Column(db.Integer, primary_key=True)
