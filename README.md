@@ -1,5 +1,11 @@
 # Basic Flask API
 
+This API supports CRUD functionality on two different models and implements 
+foreign keys to demonstrate how to build a functional API in flask
+
+`full_api.py` is the full api
+The other `xxx_api.py` files are sections for specific HTTP verbs
+
 ## Prerequisites
 - Python3
 - Postman or other API testing tool
