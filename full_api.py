@@ -1,17 +1,22 @@
 
 from flask import Flask, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
+from flask_httpauth import HTTPBasicAuth
 import models
 
 # python3 interpreter > import db from file > db.create_all()
 # to configure db and initiate models (below)
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:password@localhost/flask_api'
-db = SQLAlchemy(app)
+
+# set auth instance
+auth = HTTPBasicAuth()
 
 
 # handles creating and getting all
+# login required
 @app.route('/', methods=['GET', 'POST'])
+@auth.login_required
 def index():
     if request.method == 'POST':
         language = request.get_json()
@@ -88,16 +93,38 @@ def action_by_id(id):
         return jsonify({'status': 'Method not supported'})
 
 
+"""params
+username: string
+email: string
+password: string
+verify_password: string
+"""
 @app.route('/user/signup', methods=['POST'])
 def signup():
+    # grab json
     user = request.get_json()
 
-    new_user = models.User(username=user['username'], email=user['email'])
+    # verify request and password matching
+    if not user['password'] or not user['verify_password']:
+        return jsonify({'status': '403'})
 
+    if user['password'] != user['verify_password']:
+        return jsonify({'status': 'password mismatch'})
+
+    # create new user
+    new_user = models.User(username=user['username'], email=user['email'])
+    new_user.hash_password(user['password'])
+
+    # save user
     db.session.add(new_user)
     db.session.commit()
 
     return jsonify({'status': '201'})
+
+
+@app.route('/logout', methods=['POST'])
+def logout():
+    pass
 
 
 @app.route('/user/<id>', methods=['GET', 'PUT', 'DELETE'])
@@ -133,14 +160,20 @@ def user_specific(id):
 
         db.session.delete(user)
         db.commit()
+        db.commit
 
         return jsonify({'status': '204'})
+
+
+@app.route('/login', methods=['POST'])
+def login():
+    pass
 
 
 @app.route('/user', methods=['GET'])
 def get_users():
     users = models.User.query.all()
-    return jsonify({'users': [user.to_json() for user in users]})
+
 
 # runs the app if launched from cmd line, should not be used in production
 if __name__ == '__main__':
