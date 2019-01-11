@@ -25,3 +25,35 @@
     `python3 full_api.py`
 - open Postman (or other tool) and send requests to `http://localhost:8080`
 
+## Sample Requests
+plug the following requests into postman to test the API
+
+url:`localhost:8080/user/signup` method: `POST`
+creates a simple user
+```json
+{
+"username": "test_user",
+"email": "test@test.com"
+}
+```
+
+url: `localhost:8080/` method: POST
+```json
+{
+"name": "Python",
+"framework": "Django",
+"owner_id": 1
+}
+```
+
+Note that in the 2cnd POST request we manually give the owner id, a front end app would take care
+of getting this value well before the post is made
+
+Use a GET request on the following URL to see our Data
+
+`localhost:8080/1` to view the first entry
+
+or 
+
+`localhost:8080` to view ALL of our entries (if you choose to add more)
+
