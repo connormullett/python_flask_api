@@ -17,6 +17,7 @@ def index():
         language = request.get_json()
 
         for key, value in language.items():
+
             # returns psuedo 403 if a field is blank
             if not value:
                 return jsonify({'error': 'bad request'})
@@ -49,13 +50,16 @@ def action_by_id(id):
 
     if request.method == 'GET':
         language = models.Language.query.filter_by(id=id).first()
+
         if not language:
             return jsonify({'status': 'bad request'})
+
         return jsonify(language.to_json())
 
     elif request.method == 'PUT':
         # grabs language by id
         language = models.Language.query.get(id)
+
         if not language:
             return jsonify({'status': 'Entry does not exist'})
 
@@ -71,9 +75,10 @@ def action_by_id(id):
 
     elif request.method == 'DELETE':
         language = models.Language.query.get(id)
+
         if not language:
-            # aborts and returns a 404 if language doesnt exist
-            abort(404)
+            return jsonify({'status': '404'})
+
         db.session.delete(language)
         db.session.commit()
         return jsonify({'status': '204'})
@@ -95,15 +100,41 @@ def signup():
     return jsonify({'status': '201'})
 
 
-@app.route('/user/<id>', methods=['GET'])
-def get_user(id):
-    user = models.User.query.get(id)
-    if not user:
-        abort(404)
+@app.route('/user/<id>', methods=['GET', 'PUT', 'DELETE'])
+def user_specific(id):
 
-    return jsonify(user.to_json())
+    if request.method == 'GET':
+        user = models.User.query.get(id)
 
-    # TODO: Add Update and Delete functionality to user
+        if not user:
+            return jsonify({'status': '404'})
+
+        return jsonify(user.to_json())
+
+    elif request.method == 'PUT':
+        user = models.User.query.get(id)
+
+        if not user:
+            return jsonify({'status': '404'})
+
+        update_user = request.get_json()
+        user.email = update_user['email']
+        user.username = update_user['username']
+
+        db.session.merge(user)
+        db.session.commit()
+        return jsonify({'status': '204'})
+
+    elif request.method == 'DELETE':
+        user = models.User.query.get(id)
+
+        if not user:
+            return jsonify({'status': '404'})
+
+        db.session.delete(user)
+        db.commit()
+
+        return jsonify({'status': '204'})
 
 
 @app.route('/user', methods=['GET'])
